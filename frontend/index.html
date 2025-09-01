@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transcendence - Social</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s ease;
+        }
+        .text-neon-blue { color: #4fc3f7; }
+        .bg-card { background-color: #1e1e1e; }
+        .input-style { background-color: #333333; border-color: #555555; color: white; }
+        .btn-primary {
+            background-color: #4fc3f7;
+            color: black;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: scale(1.05);
+            background-color: #29b6f6;
+        }
+        /* Estilos para el tema oscuro */
+        body.dark-mode {
+            background-color: #121212;
+        }
+        body.dark-mode .bg-card {
+            background-color: #1e1e1e;
+        }
+        body.dark-mode .input-style {
+            background-color: #333333;
+            border-color: #555555;
+            color: white;
+        }
+        body.dark-mode .text-gray-900 {
+            color: #ffffff;
+        }
+        body.dark-mode .text-gray-600 {
+            color: #a0a0a0;
+        }
+        body.dark-mode .header-button {
+            color: white;
+        }
+        body.dark-mode .header-button:hover {
+            color: #4fc3f7;
+        }
+        /* Estilos para el tema luminoso (por defecto) */
+        body {
+            background-color: #f0f2f5;
+        }
+        .bg-card {
+            background-color: #ffffff;
+        }
+        .input-style {
+            background-color: #e4e6eb;
+            border-color: #cccccc;
+            color: #1a1a1a;
+        }
+        .text-gray-900 {
+            color: #1a1a1a;
+        }
+        .text-gray-600 {
+            color: #666666;
+        }
+        .header-button {
+            color: #1a1a1a;
+        }
+        .header-button:hover {
+            color: #0084ff;
+        }
+        .title-text {
+            color: #1a1a1a; /* Color del título en modo claro */
+            transition: color 0.3s ease;
+        }
+        body.dark-mode .title-text {
+            color: #ffffff; /* Color del título en modo oscuro */
+        }
+    </style>
+</head>
+<body class="light-mode">
+
+    <!-- Barra de Navegación Superior -->
+    <header class="bg-card border-b border-[#dddddd] fixed top-0 w-full z-10">
+        <nav class="container mx-auto px-4 py-3 flex items-center justify-between">
+            <h1 class="font-bold text-xl title-text">ft_transcendence</h1>
+            <div class="flex items-center space-x-4">
+                <button id="theme-toggle" class="header-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                </button>
+                <button class="header-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </svg>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-4 pt-20 pb-8">
+        <!-- Contenedor principal de la aplicación -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            
+            <!-- Panel de control lateral para formularios CRUD -->
+            <div class="md:col-span-1 space-y-6">
+                <!-- Sección para mostrar mensajes de la aplicación -->
+                <div id="message-box" class="hidden p-4 rounded-lg text-center font-semibold"></div>
+                
+                <!-- Formulario Añadir -->
+                <div class="bg-card rounded-xl p-6 shadow-lg">
+                    <h2 class="text-lg font-semibold mb-4 text-neon-blue">Añadir Jugador</h2>
+                    <form id="add-player-form" class="space-y-4">
+                        <input type="text" id="add-alias" name="alias" placeholder="Alias" required class="w-full px-3 py-2 rounded-md input-style focus:outline-none">
+                        <input type="text" id="add-nombre" name="nombre" placeholder="Nombre" required class="w-full px-3 py-2 rounded-md input-style focus:outline-none">
+                        <input type="text" id="add-apellido" name="apellido" placeholder="Apellido" required class="w-full px-3 py-2 rounded-md input-style focus:outline-none">
+                        <input type="email" id="add-email" name="email" placeholder="Email" required class="w-full px-3 py-2 rounded-md input-style focus:outline-none">
+                        <button type="submit" class="w-full py-2 rounded-md btn-primary">Añadir</button>
+                    </form>
+                </div>
+                
+                <!-- Formulario Actualizar -->
+                <div class="bg-card rounded-xl p-6 shadow-lg">
+                    <h2 class="text-lg font-semibold mb-4 text-neon-blue">Actualizar Jugador</h2>
+                    <form id="update-player-form" class="space-y-4">
+                        <input type="number" id="update-id" name="id" placeholder="ID del Jugador" required class="w-full px-3 py-2 rounded-md input-style focus:outline-none">
+                        <input type="text" id="update-alias" name="alias" placeholder="Nuevo Alias" required class="w-full px-3 py-2 rounded-md input-style focus:outline-none">
+                        <button type="submit" class="w-full py-2 rounded-md bg-green-500 text-white font-semibold hover:bg-green-600">Actualizar</button>
+                    </form>
+                </div>
+                
+                <!-- Formulario Eliminar -->
+                <div class="bg-card rounded-xl p-6 shadow-lg">
+                    <h2 class="text-lg font-semibold mb-4 text-neon-blue">Eliminar Jugador</h2>
+                    <form id="delete-player-form" class="space-y-4">
+                        <input type="number" id="delete-id" name="id" placeholder="ID a Eliminar" required class="w-full px-3 py-2 rounded-md input-style focus:outline-none">
+                        <button type="submit" class="w-full py-2 rounded-md bg-red-500 text-white font-semibold hover:bg-red-600">Eliminar</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Sección principal para el feed de jugadores -->
+            <div id="player-list" class="md:col-span-2 space-y-6">
+                <!-- Los jugadores se renderizarán aquí -->
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const playersList = document.getElementById('player-list');
+            const addForm = document.getElementById('add-player-form');
+            const updateForm = document.getElementById('update-player-form');
+            const deleteForm = document.getElementById('delete-player-form');
+            const messageBox = document.getElementById('message-box');
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            
+            const apiUrl = 'http://localhost:8080/backend/api.php';
+
+            // Función para cambiar el tema
+            themeToggleBtn.addEventListener('click', () => {
+                document.body.classList.toggle('light-mode');
+                document.body.classList.toggle('dark-mode');
+            });
+
+            function showMessage(message, type = 'info') {
+                messageBox.textContent = message;
+                messageBox.className = 'p-4 rounded-lg text-center font-semibold ' +
+                                      (type === 'success' ? 'bg-green-500 text-white' :
+                                       type === 'error' ? 'bg-red-500 text-white' :
+                                       'bg-blue-500 text-white');
+                messageBox.classList.remove('hidden');
+                setTimeout(() => {
+                    messageBox.classList.add('hidden');
+                }, 3000);
+            }
+
+            function fetchPlayers() {
+                fetch(apiUrl)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Error al cargar la API');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        playersList.innerHTML = '';
+                        if (data.length > 0) {
+                            const listHtml = data.map(player => `
+                                <div class="bg-card rounded-xl overflow-hidden shadow-lg p-6 flex items-center space-x-4">
+                                    <img src="https://placehold.co/64x64/29b6f6/white?text=A" class="w-16 h-16 rounded-full" alt="Avatar de ${player.alias}">
+                                    <div class="flex-grow">
+                                        <div class="font-bold text-lg text-neon-blue">${player.alias}</div>
+                                        <p class="text-gray-600 text-sm">ID: ${player.player_id} | ${player.first_name} ${player.last_name}</p>
+                                        <p class="text-gray-600 text-sm">Email: ${player.email}</p>
+                                    </div>
+                                    <div class="text-right flex-shrink-0">
+                                        <span class="text-green-500 font-bold">Victorias: 0</span>
+                                        <span class="text-red-500 font-bold ml-2">Derrotas: 0</span>
+                                    </div>
+                                </div>
+                            `).join('');
+                            playersList.innerHTML = listHtml;
+                        } else {
+                            playersList.innerHTML = '<p class="text-gray-600 text-center">No hay jugadores registrados.</p>';
+                        }
+                    })
+                    .catch(error => {
+                        playersList.innerHTML = `<p class="text-red-500">Error: ${error.message}</p>`;
+                        console.error('Error:', error);
+                    });
+            }
+            
+            addForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const formData = new FormData(addForm);
+                const data = Object.fromEntries(formData.entries());
+                
+                fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        showMessage('Jugador añadido correctamente!', 'success');
+                        addForm.reset();
+                        fetchPlayers();
+                    } else {
+                        showMessage(`Error: ${result.message}`, 'error');
+                    }
+                })
+                .catch(error => showMessage(`Error en la petición: ${error.message}`, 'error'));
+            });
+
+            updateForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const formData = new FormData(updateForm);
+                const data = Object.fromEntries(formData.entries());
+                
+                fetch(apiUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        showMessage('Jugador actualizado correctamente!', 'success');
+                        updateForm.reset();
+                        fetchPlayers();
+                    } else {
+                        showMessage(`Error: ${result.message}`, 'error');
+                    }
+                })
+                .catch(error => showMessage(`Error en la petición: ${error.message}`, 'error'));
+            });
+
+            deleteForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const formData = new FormData(deleteForm);
+                const data = Object.fromEntries(formData.entries());
+                
+                fetch(apiUrl, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        showMessage('Jugador eliminado correctamente!', 'success');
+                        deleteForm.reset();
+                        fetchPlayers();
+                    } else {
+                        showMessage(`Error: ${result.message}`, 'error');
+                    }
+                })
+                .catch(error => showMessage(`Error en la petición: ${error.message}`, 'error'));
+            });
+
+            fetchPlayers();
+        });
+    </script>
+</body>
+</html>
