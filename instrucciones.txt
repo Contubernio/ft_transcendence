@@ -1,0 +1,19 @@
+Ejecutar make build
+
+si no existe crear la carpeta data en el directorio raiz del proyecto
+
+mkdir data
+
+dar permisos a la carpeta data
+
+chmod 777 data/
+
+ejecutar make up
+
+dar permiso a la bbdd dentro de la carpeta data
+
+en el navegador ejecutar:
+
+http://localhost:8080/frontend/index.html
+
+
