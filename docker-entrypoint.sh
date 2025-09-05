@@ -1,24 +1,34 @@
-#!/bin/bash
+#!/bin/sh
+set -e
 
-# Ruta a la base de datos
-DB_PATH="/var/www/html/data/transcendence.db"
+APP_DIR="/usr/src/app"
+BACKEND_DIR="$APP_DIR/backend"
+FRONTEND_DIR="$APP_DIR/frontend"
+DATA_DIR="$APP_DIR/data"
+DB_FILE="$DATA_DIR/transcendence.db"
+SCHEMA_PATH="$APP_DIR/schema.sql"
 
-# Ruta al script SQL para crear la base de datos
-SCHEMA_PATH="/var/www/html/schema.sql"
+# Crear directorio de datos si no existe
+mkdir -p "$DATA_DIR"
+chown -R node:node "$DATA_DIR"
+chmod -R 770 "$DATA_DIR"
 
-# Asegúrate de que el usuario de Apache (www-data) tenga permisos sobre el directorio de logs
-mkdir -p /var/log/apache2/
-chown -R www-data:www-data /var/log/apache2/
-
-# Comprueba si el archivo de la base de datos existe
-if [ ! -f "$DB_PATH" ]; then
+# Crear la base de datos si no existe
+if [ ! -f "$DB_FILE" ]; then
     echo "Base de datos no encontrada. Creando y poblando..."
-    
-    # Crea la base de datos y la puebla
-    sqlite3 "$DB_PATH" < "$SCHEMA_PATH"
-
+    gosu node sh -c "sqlite3 \"$DB_FILE\" < \"$SCHEMA_PATH\""
     echo "Base de datos creada y populada correctamente."
 fi
 
-# Inicia Apache en primer plano
-exec apache2-foreground
+# Asegurar permisos correctos sobre el archivo .db
+chown node:node "$DB_FILE" || true
+chmod 660 "$DB_FILE" || true
+
+# Confirmar que frontend existe
+if [ ! -d "$FRONTEND_DIR" ]; then
+    echo "⚠️  Advertencia: no se encontró la carpeta frontend en $FRONTEND_DIR"
+fi
+
+# Ejecutar servidor como usuario node con npm start
+exec gosu node npm start --prefix "$BACKEND_DIR"
+

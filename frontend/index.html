@@ -83,7 +83,6 @@
 </head>
 <body class="light-mode">
 
-    <!-- Barra de Navegación Superior -->
     <header class="bg-card border-b border-[#dddddd] fixed top-0 w-full z-10">
         <nav class="container mx-auto px-4 py-3 flex items-center justify-between">
             <h1 class="font-bold text-xl title-text">ft_transcendence</h1>
@@ -104,50 +103,40 @@
     </header>
 
     <main class="container mx-auto px-4 pt-20 pb-8">
-        <!-- Contenedor principal de la aplicación -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             
-            <!-- Panel de control lateral para formularios CRUD -->
             <div class="md:col-span-1 space-y-6">
-                <!-- Sección para mostrar mensajes de la aplicación -->
                 <div id="message-box" class="hidden p-4 rounded-lg text-center font-semibold"></div>
                 
-                <!-- Formulario Añadir -->
                 <div class="bg-card rounded-xl p-6 shadow-lg">
                     <h2 class="text-lg font-semibold mb-4 text-neon-blue">Añadir Jugador</h2>
                     <form id="add-player-form" class="space-y-4">
                         <input type="text" id="add-alias" name="alias" placeholder="Alias" required class="w-full px-3 py-2 rounded-md input-style focus:outline-none">
-                        <input type="text" id="add-nombre" name="nombre" placeholder="Nombre" required class="w-full px-3 py-2 rounded-md input-style focus:outline-none">
-                        <input type="text" id="add-apellido" name="apellido" placeholder="Apellido" required class="w-full px-3 py-2 rounded-md input-style focus:outline-none">
-                        <input type="email" id="add-email" name="email" placeholder="Email" required class="w-full px-3 py-2 rounded-md input-style focus:outline-none">
+                        <input type="text" id="add-nombre" name="first_name" placeholder="Nombre" required class="w-full px-3 py-2 rounded-md input-style focus:outline-none"> <input type="text" id="add-apellido" name="last_name" placeholder="Apellido" required class="w-full px-3 py-2 rounded-md input-style focus:outline-none"> <input type="email" id="add-email" name="email" placeholder="Email" required class="w-full px-3 py-2 rounded-md input-style focus:outline-none">
                         <button type="submit" class="w-full py-2 rounded-md btn-primary">Añadir</button>
                     </form>
                 </div>
                 
-                <!-- Formulario Actualizar -->
                 <div class="bg-card rounded-xl p-6 shadow-lg">
                     <h2 class="text-lg font-semibold mb-4 text-neon-blue">Actualizar Jugador</h2>
                     <form id="update-player-form" class="space-y-4">
-                        <input type="number" id="update-id" name="id" placeholder="ID del Jugador" required class="w-full px-3 py-2 rounded-md input-style focus:outline-none">
+                        <input type="number" id="update-id" name="player_id" placeholder="ID del Jugador" required class="w-full px-3 py-2 rounded-md input-style focus:outline-none">
                         <input type="text" id="update-alias" name="alias" placeholder="Nuevo Alias" required class="w-full px-3 py-2 rounded-md input-style focus:outline-none">
                         <button type="submit" class="w-full py-2 rounded-md bg-green-500 text-white font-semibold hover:bg-green-600">Actualizar</button>
                     </form>
                 </div>
                 
-                <!-- Formulario Eliminar -->
                 <div class="bg-card rounded-xl p-6 shadow-lg">
                     <h2 class="text-lg font-semibold mb-4 text-neon-blue">Eliminar Jugador</h2>
                     <form id="delete-player-form" class="space-y-4">
-                        <input type="number" id="delete-id" name="id" placeholder="ID a Eliminar" required class="w-full px-3 py-2 rounded-md input-style focus:outline-none">
+                        <input type="number" id="delete-id" name="player_id" placeholder="ID a Eliminar" required class="w-full px-3 py-2 rounded-md input-style focus:outline-none">
                         <button type="submit" class="w-full py-2 rounded-md bg-red-500 text-white font-semibold hover:bg-red-600">Eliminar</button>
                     </form>
                 </div>
             </div>
 
-            <!-- Sección principal para el feed de jugadores -->
             <div id="player-list" class="md:col-span-2 space-y-6">
-                <!-- Los jugadores se renderizarán aquí -->
-            </div>
+                </div>
         </div>
     </main>
 
@@ -160,7 +149,8 @@
             const messageBox = document.getElementById('message-box');
             const themeToggleBtn = document.getElementById('theme-toggle');
             
-            const apiUrl = 'http://localhost:8080/backend/api.php';
+            const apiUrl = 'http://localhost:8080/api';
+
 
             // Función para cambiar el tema
             themeToggleBtn.addEventListener('click', () => {
@@ -180,8 +170,9 @@
                 }, 3000);
             }
 
+            // AHORA LA LLAMADA DE FETCH USA LA RUTA EXPLÍCITA
             function fetchPlayers() {
-                fetch(apiUrl)
+                fetch(`${apiUrl}?route=players`)
                     .then(response => {
                         if (!response.ok) {
                             throw new Error('Error al cargar la API');
@@ -221,7 +212,8 @@
                 const formData = new FormData(addForm);
                 const data = Object.fromEntries(formData.entries());
                 
-                fetch(apiUrl, {
+                // AHORA LA LLAMADA DE FETCH USA LA RUTA EXPLÍCITA
+                fetch(`${apiUrl}?route=players`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -246,7 +238,8 @@
                 const formData = new FormData(updateForm);
                 const data = Object.fromEntries(formData.entries());
                 
-                fetch(apiUrl, {
+                // AHORA LA LLAMADA DE FETCH USA LA RUTA EXPLÍCITA
+                fetch(`${apiUrl}?route=players`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
@@ -271,7 +264,8 @@
                 const formData = new FormData(deleteForm);
                 const data = Object.fromEntries(formData.entries());
                 
-                fetch(apiUrl, {
+                // AHORA LA LLAMADA DE FETCH USA LA RUTA EXPLÍCITA
+                fetch(`${apiUrl}?route=players`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json'

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transcendence - Menú de Pruebas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s ease;
+        }
+        .text-neon-blue { color: #4fc3f7; }
+        .bg-card { background-color: #1e1e1e; }
+        .btn-primary {
+            background-color: #4fc3f7;
+            color: black;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: scale(1.05);
+            background-color: #29b6f6;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            transform: scale(1.05);
+            background-color: #5a6268;
+        }
+        /* Estilos para el tema oscuro */
+        body.dark-mode {
+            background-color: #121212;
+        }
+        body.dark-mode .bg-card {
+            background-color: #1e1e1e;
+        }
+        body.dark-mode .text-gray-900 {
+            color: #ffffff;
+        }
+        body.dark-mode .text-gray-600 {
+            color: #a0a0a0;
+        }
+        /* Estilos para el tema luminoso (por defecto) */
+        body {
+            background-color: #f0f2f5;
+        }
+        .bg-card {
+            background-color: #ffffff;
+        }
+        .text-gray-900 {
+            color: #1a1a1a;
+        }
+        .text-gray-600 {
+            color: #666666;
+        }
+    </style>
+</head>
+<body class="light-mode flex items-center justify-center min-h-screen">
+
+    <div class="bg-card rounded-xl shadow-lg p-10 max-w-lg w-full text-center">
+        <h1 class="text-3xl font-bold text-neon-blue mb-2">ft_transcendence</h1>
+        <p class="text-gray-600 mb-8">Selecciona una opción para continuar.</p>
+
+        <div class="space-y-4">
+            <a href="index.html" class="block w-full py-4 rounded-md btn-primary text-black no-underline">
+                Test de Base de Datos
+            </a>
+            <a href="juego.html" class="block w-full py-4 rounded-md btn-secondary text-white no-underline">
+                Test de Juego
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>

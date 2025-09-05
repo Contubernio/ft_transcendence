@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Pong (cliente)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: system-ui, sans-serif; display:flex; flex-direction:column; align-items:center; gap:12px; padding:16px; }
+    canvas { background:#000; border-radius:12px; box-shadow: 0 8px 24px rgba(0,0,0,.2); }
+    .hud { display:flex; gap:16px; align-items:center; }
+    .tag { padding:4px 8px; border-radius:999px; background:#eee; font-weight:600; }
+  </style>
+</head>
+<body>
+  <h1>Pong (motor en backend)</h1>
+  <div class="hud">
+    <span id="role" class="tag">Conectando…</span>
+    <span id="score" class="tag">0 - 0</span>
+    <span class="tag">Controles: W/S (jugador izquierdo)</span>
+  </div>
+  <canvas id="c" width="800" height="500"></canvas>
+
+  <script>
+    const canvas = document.getElementById('c');
+    const ctx = canvas.getContext('2d');
+    const roleEl = document.getElementById('role');
+    const scoreEl = document.getElementById('score');
+
+    let role = 'spectator';
+    let state = {
+      w: 800, h: 500,
+      leftY: 200, rightY: 200,
+      ballX: 400, ballY: 250,
+      score: { left: 0, right: 0 }
+    };
+
+    // Conectar WS al mismo host/puerto
+    const WS_URL = (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/pong';
+    const ws = new WebSocket(WS_URL);
+
+    ws.addEventListener('open', () => {
+      roleEl.textContent = 'Conectado';
+    });
+
+    ws.addEventListener('message', (ev) => {
+      const msg = JSON.parse(ev.data);
+      if (msg.type === 'role') {
+        role = msg.role;
+        roleEl.textContent = `Tu rol: ${role}`;
+      } else if (msg.type === 'state') {
+        state = msg.state;
+        scoreEl.textContent = `${state.score.left} - ${state.score.right}`;
+        draw();
+      }
+    });
+
+    // Enviar inputs solo cuando cambian
+    const keys = { up: false, down: false };
+    function sendInput() {
+      ws.readyState === 1 && ws.send(JSON.stringify({ type: 'input', up: keys.up, down: keys.down }));
+    }
+    window.addEventListener('keydown', (e) => {
+      if (role !== 'left' && role !== 'right') return;
+      if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') {
+        if (!keys.up) { keys.up = true; sendInput(); }
+      } else if (e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') {
+        if (!keys.down) { keys.down = true; sendInput(); }
+      }
+    });
+    window.addEventListener('keyup', (e) => {
+      if (role !== 'left' && role !== 'right') return;
+      if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') {
+        if (keys.up) { keys.up = false; sendInput(); }
+      } else if (e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') {
+        if (keys.down) { keys.down = false; sendInput(); }
+      }
+    });
+
+    function draw() {
+      const W = state.w, H = state.h;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // Fondo
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, W, H);
+
+      // Línea central
+      ctx.strokeStyle = '#444';
+      ctx.setLineDash([10, 10]);
+      ctx.beginPath();
+      ctx.moveTo(W/2, 0); ctx.lineTo(W/2, H);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Palas
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, state.leftY, 15, 100);
+      ctx.fillRect(W - 15, state.rightY, 15, 100);
+
+      // Bola
+      ctx.beginPath();
+      ctx.arc(state.ballX, state.ballY, 10, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Marcador (ya lo ponemos en la HUD)
+    }
+  </script>
+</body>
+</html>

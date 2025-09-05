@@ -1,0 +1,33 @@
+# Ignorar dependencias locales
+**/node_modules
+**/npm-debug.log
+**/yarn-error.log
+**/pnpm-debug.log
+
+# Ignorar control de versiones
+.git
+.gitignore
+.dockerignore
+
+# Ignorar IDEs y editores
+.vscode
+.idea
+*.swp
+*.swo
+
+# Ignorar archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Ignorar archivos temporales
+*.tmp
+*.log
+
+# Si usas tests, puedes excluirlos de la imagen final
+backend/test
+backend/node_modules
+frontend/test
+
+# Si tienes build del frontend, ajusta según tu flujo:
+#frontend/node_modules
+#frontend/dist
