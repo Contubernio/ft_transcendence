@@ -12,7 +12,7 @@ Para las pruebas de las bbdd acceder a
 http://localhost:8081/menu y dar al botón test de base de datos
 
 CUARTO:
-Para pruebas del pong en linea abrir en dos navegadores:
+Para pruebas del pong en linea abrir en dos navegadores o 2 sesiones del mismo navegador si no no funciona multijugador:
 http://localhost:8081/menu
 y pulsar el botón test de Websocket el proceso esperará a que haya dos jugadores, si se abren más seran espectadores
 
