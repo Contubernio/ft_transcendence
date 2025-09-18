@@ -1,4 +1,6 @@
 PRIMERO:
+Descargar el contenido de este repo: 
+https://github.com/Contubernio/ft_transcendence
 
 SEGUNDO:
 docker-compose down -v
@@ -14,6 +16,7 @@ Para pruebas del pong en linea abrir en dos navegadores:
 http://localhost:8081/menu
 y pulsar el botón test de Websocket el proceso esperará a que haya dos jugadores, si se abren más seran espectadores
 
+LIBERAR ESPACIO:
 para eliminar todas las pruebas realizadas y liberar espacio
 docker stop $(docker ps -a -q)
 docker rm $(docker ps -a -q)
