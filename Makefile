@@ -3,6 +3,10 @@ IMAGE_NAME=transcendence:latest
 HOST_UID := $(shell id -u)
 NODE_UID := 1000
 
+# Servicios docker-compose
+COMPOSE_BACKEND=transcendence_backend
+COMPOSE_FRONTEND=transcendence_frontend
+
 # Construir la imagen
 build:
 	docker build -f Dockerfile.node -t $(IMAGE_NAME) .
@@ -75,3 +79,31 @@ down:
 re: down up
 
 test: down up logs
+
+# -------------------------
+# SECCIÓN: Comandos para docker-compose
+# -------------------------
+
+compose-up:
+	ddocker compose up -d --build
+
+compose-down:
+	docker compose down
+
+compose-logs:
+	docker compose logs -f
+
+compose-shell-db:
+	docker exec -it $(COMPOSE_DB_SERVER) /bin/sh
+
+compose-shell-pong:
+	docker exec -it $(COMPOSE_PONG_SERVER) /bin/sh
+
+compose-shell-web:
+	docker exec -it $(COMPOSE_WEB_SERVER) /bin/sh
+
+compose-re: compose-down compose-up
+
+compose-test: compose-down compose-up compose-logs
+
+.PHONY: build check-perms prepare-host up-host volume up-volume up logs shell down re test compose-up compose-down compose-logs compose-shell-db compose-shell-pong compose-shell-web compose-re compose-test

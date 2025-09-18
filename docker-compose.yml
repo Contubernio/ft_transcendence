@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  db_server:
+    build:
+      context: .
+      dockerfile: ./db_service/Dockerfile
+    container_name: transcendence_db_server
+    volumes:
+      - ./data:/usr/src/app/data   # solo montamos la DB
+    ports:
+      - "3000:3000"
+
+  websocket_server:
+    build: ./backend
+    container_name: transcendence_websocket_server
+    working_dir: /usr/src/app
+    command: node backend/server.js
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backend:/usr/src/app/backend  # solo el código fuente
+
+  web_server:
+    build: ./frontend
+    container_name: transcendence_web_server
+    working_dir: /usr/src/app
+    command: npx http-server . -p 8081
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./frontend:/usr/src/app   # solo frontend

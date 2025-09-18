@@ -1,19 +1,22 @@
-Ejecutar make build
+PRIMERO:
 
-si no existe crear la carpeta data en el directorio raiz del proyecto
+SEGUNDO:
+docker-compose down -v
+docker-compose build --no-cache
+docker-compose up -d
 
-mkdir data
+TERCERO:
+Para las pruebas de las bbdd acceder a 
+http://localhost:8081/menu y dar al botón test de base de datos
 
-dar permisos a la carpeta data
+CUARTO:
+Para pruebas del pong en linea abrir en dos navegadores:
+http://localhost:8081/menu
+y pulsar el botón test de Websocket el proceso esperará a que haya dos jugadores, si se abren más seran espectadores
 
-chmod 777 data/
-
-ejecutar make up
-
-dar permiso a la bbdd dentro de la carpeta data
-
-en el navegador ejecutar:
-
-http://localhost:8080/frontend/index.html
-
+para eliminar todas las pruebas realizadas y liberar espacio
+docker stop $(docker ps -a -q)
+docker rm $(docker ps -a -q)
+docker image prune -a
+nos preguntara si o si le decimos si
 

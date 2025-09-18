@@ -1,139 +1,172 @@
-import Fastify from 'fastify';
-import FastifyStatic from '@fastify/static';
-import path from 'path';
-import Database from 'better-sqlite3';
+// backend/server.js
+import Fastify from "fastify";
+import websocketPlugin from "@fastify/websocket";
+import path from "path";
+import { fileURLToPath } from "url";
+import fs from "fs/promises";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const fastify = Fastify({ logger: true });
+await fastify.register(websocketPlugin);
 
-// Configuración para CORS
-fastify.addHook('onRequest', (request, reply, done) => {
-  reply.header('Access-Control-Allow-Origin', '*');
-  reply.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  reply.header('Access-Control-Allow-Headers', 'Content-Type');
-  if (request.method === 'OPTIONS') {
-    reply.status(200).send();
-    return;
+let clients = [];
+let nextPlayer = 1; // asignar jugador 1 y 2
+let gameStarted = false; // Variable para controlar el estado del juego
+
+// Estado inicial del juego
+let gameState = {
+  ball: { x: 300, y: 200, dx: 4, dy: 4, r: 10 }, // más rápido
+  paddles: {
+    left: { y: 150 },
+    right: { y: 150 },
+  },
+  score: { left: 0, right: 0 },
+};
+
+// ----------------------
+// Sirve el cliente HTML
+// ----------------------
+fastify.get("/", async (req, reply) => {
+  const htmlPath = path.join(__dirname, "client.html");
+  const htmlContent = await fs.readFile(htmlPath, "utf8");
+  reply.type("text/html").send(htmlContent);
+});
+
+// ----------------------
+// WebSocket en /ws
+// ----------------------
+fastify.get("/ws", { websocket: true }, (socket, req) => {
+  const playerId = nextPlayer <= 2 ? nextPlayer++ : null;
+  fastify.log.info(`🎮 Nuevo cliente conectado como jugador ${playerId ?? "espectador"}`);
+
+  const client = { socket, playerId };
+  clients.push(client);
+
+  // Enviar rol al cliente
+  socket.send(JSON.stringify({ type: "role", player: playerId }));
+
+  // Notificar al cliente si está esperando
+  if (clients.length < 2) {
+    socket.send(JSON.stringify({ type: "info", message: "Esperando a otro jugador..." }));
   }
-  done();
-});
 
-// Servir archivos estáticos desde ../frontend
-fastify.register(FastifyStatic, {
-  root: path.join(process.cwd(), '..', 'frontend'),
-  prefix: '/frontend/',
-});
-
-// Conexión SQLite con better-sqlite3 (síncrona)
-try {
-  const db = new Database('/usr/src/app/data/transcendence.db', { verbose: console.log });
-  db.pragma('journal_mode = WAL');
-
-  // --- Funciones de API ---
-
-  function handlePlayersRequest(request, reply) {
-    const { method } = request;
-    const data = request.body;
-    const playerId = request.query.id;
-
-    try {
-      switch (method) {
-        case 'GET':
-          if (playerId) {
-            const player = db.prepare('SELECT * FROM player WHERE player_id = ?').get(playerId);
-            if (player) {
-              reply.send(player);
-            } else {
-              reply.status(404).send({ success: false, message: 'Jugador no encontrado.' });
-            }
-          } else {
-            const players = db.prepare('SELECT player_id, alias, first_name, last_name, email FROM player').all();
-            reply.send(players);
+  socket.on("message", (msg) => {
+    // Solo procesa los movimientos si el juego ha comenzado
+    if (gameStarted) {
+      try {
+        const parsed = JSON.parse(msg.toString());
+        if (parsed.type === "move") {
+          if (client.playerId === 1) {
+            // Jugador 1 controla izquierda
+            gameState.paddles.left.y = Math.max(
+              0,
+              Math.min(300, gameState.paddles.left.y + parsed.dy)
+            );
           }
-          break;
-        case 'POST':
-          if (!data.alias || !data.first_name || !data.last_name || !data.email) {
-            reply.status(400).send({ success: false, message: 'Datos incompletos.' });
-            return;
+          if (client.playerId === 2) {
+            // Jugador 2 controla derecha
+            gameState.paddles.right.y = Math.max(
+              0,
+              Math.min(300, gameState.paddles.right.y + parsed.dy)
+            );
           }
-          const password_hash = 'default_password';
-          const stmt = db.prepare('INSERT INTO player (alias, first_name, last_name, email, password_hash) VALUES (?, ?, ?, ?, ?)');
-          const res = stmt.run(data.alias, data.first_name, data.last_name, data.email, password_hash);
-          reply.send({ success: true, message: 'Jugador añadido correctamente.', id: res.lastID });
-          break;
-        case 'PUT':
-          if (!data.player_id) {
-            reply.status(400).send({ success: false, message: 'ID del jugador es obligatorio para actualizar.' });
-            return;
-          }
-          const updates = [];
-          const params = [];
-          if (data.alias) { updates.push('alias = ?'); params.push(data.alias); }
-          if (data.first_name) { updates.push('first_name = ?'); params.push(data.first_name); }
-          if (data.last_name) { updates.push('last_name = ?'); params.push(data.last_name); }
-          if (data.email) { updates.push('email = ?'); params.push(data.email); }
-          if (updates.length === 0) {
-            reply.status(400).send({ success: false, message: 'No hay datos para actualizar.' });
-            return;
-          }
-          params.push(data.player_id);
-          const updateStmt = db.prepare(`UPDATE player SET ${updates.join(', ')} WHERE player_id = ?`);
-          const updateRes = updateStmt.run(...params);
-          if (updateRes.changes > 0) {
-            reply.send({ success: true, message: 'Jugador actualizado correctamente.' });
-          } else {
-            reply.status(404).send({ success: false, message: 'Jugador no encontrado o datos no cambiados.' });
-          }
-          break;
-        case 'DELETE':
-          if (!data.player_id) {
-            reply.status(400).send({ success: false, message: 'ID del jugador es obligatorio para eliminar.' });
-            return;
-          }
-          const deleteStmt = db.prepare("DELETE FROM player WHERE player_id = ?");
-          const deleteRes = deleteStmt.run(data.player_id);
-          if (deleteRes.changes > 0) {
-            reply.send({ success: true, message: 'Jugador eliminado correctamente.' });
-          } else {
-            reply.status(404).send({ success: false, message: 'Jugador no encontrado.' });
-          }
-          break;
-        default:
-          reply.status(405).send({ success: false, message: 'Método no permitido para jugadores.' });
-          break;
+        }
+      } catch (e) {
+        fastify.log.error("❌ Error parsing message", e);
       }
-    } catch (err) {
-      console.error('Error en handlePlayersRequest:', err);
-      reply.status(500).send({ success: false, message: 'Error interno del servidor.' });
-    }
-  }
-
-  // Router principal de la API
-  fastify.all('/api', async (request, reply) => {
-    const route = request.query.route ?? 'players';
-
-    switch (route) {
-      case 'players':
-        handlePlayersRequest(request, reply);
-        break;
-      // Aquí se añadirían las demás rutas como 'games', 'tournaments', etc., con su lógica síncrona
-      default:
-        reply.status(404).send({ success: false, message: 'Ruta no encontrada.' });
-        break;
     }
   });
 
-  // --- Arranque del servidor ---
-  const start = async () => {
-    try {
-      await fastify.listen({ port: 3000, host: '0.0.0.0' });
-    } catch (err) {
-      fastify.log.error(err);
-      process.exit(1);
+  socket.on("close", () => {
+    fastify.log.info(`👋 Cliente ${playerId ?? "espectador"} desconectado`);
+    clients = clients.filter((c) => c.socket !== socket);
+    if (playerId) nextPlayer = playerId; // liberar el slot si se desconecta
+    
+    // Si un jugador se desconecta, el juego se reinicia
+    if (clients.length < 2) {
+      gameStarted = false;
+      fastify.log.info("⚠️ Jugador desconectado. Esperando a nuevos jugadores...");
     }
-  };
-  start();
+  });
+});
 
-} catch (err) {
-  console.error('Error al conectar con la base de datos:', err);
-  process.exit(1);
-}
+// ----------------------
+// Bucle del juego
+// ----------------------
+setInterval(() => {
+  // Solo ejecuta el bucle si hay 2 clientes conectados
+  if (clients.length >= 2) {
+    if (!gameStarted) {
+      gameStarted = true;
+      fastify.log.info("🎮 ¡Juego iniciado! Hay dos jugadores conectados.");
+    }
+
+    // Mueve la pelota
+    gameState.ball.x += gameState.ball.dx;
+    gameState.ball.y += gameState.ball.dy;
+
+    // Rebote vertical
+    if (
+      gameState.ball.y - gameState.ball.r < 0 ||
+      gameState.ball.y + gameState.ball.r > 400
+    ) {
+      gameState.ball.dy *= -1;
+    }
+
+    // Rebote en paletas
+    if (
+      gameState.ball.x - gameState.ball.r < 20 &&
+      gameState.ball.y > gameState.paddles.left.y &&
+      gameState.ball.y < gameState.paddles.left.y + 100
+    ) {
+      gameState.ball.dx *= -1.05; // aumenta la velocidad
+    }
+    if (
+      gameState.ball.x + gameState.ball.r > 580 &&
+      gameState.ball.y > gameState.paddles.right.y &&
+      gameState.ball.y < gameState.paddles.right.y + 100
+    ) {
+      gameState.ball.dx *= -1.05; // aumenta la velocidad
+    }
+
+    // Reinicio y puntuación
+    if (gameState.ball.x < 0) {
+      gameState.score.right++;
+      gameState.ball = { x: 300, y: 200, dx: 4, dy: 4, r: 10 };
+    }
+    if (gameState.ball.x > 600) {
+      gameState.score.left++;
+      gameState.ball = { x: 300, y: 200, dx: -4, dy: 4, r: 10 };
+    }
+
+    // Broadcast
+    const state = JSON.stringify({ type: "state", data: gameState });
+    clients = clients.filter((c) => {
+      try {
+        c.socket.send(state);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    });
+  } else {
+    // Si no hay suficientes jugadores, el juego se detiene
+    gameStarted = false;
+  }
+}, 50);
+
+// ----------------------
+// Arranca el servidor
+// ----------------------
+const start = async () => {
+  try {
+    await fastify.listen({ port: 8080, host: "0.0.0.0" });
+    fastify.log.info("🚀 Pong server corriendo en http://localhost:8080");
+  } catch (err) {
+    fastify.log.error(err);
+    process.exit(1);
+  }
+};
+start();

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Pong Multiplayer</title>
+  <style>
+    body { background: black; display: flex; flex-direction: column; align-items: center; }
+    canvas { background: #222; margin-top: 10px; }
+    #info { color: white; font-family: monospace; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1 style="color:white;">🏓 Pong Multiplayer</h1>
+  <div id="info">Conectando...</div>
+  <canvas id="gameCanvas" width="600" height="400"></canvas>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const info = document.getElementById("info");
+
+    let playerId = null;
+    let gameState = null;
+
+    const ws = new WebSocket("ws://localhost:8080/ws");
+
+    ws.onopen = () => {
+      info.textContent = "✅ Conectado al servidor";
+    };
+
+    ws.onmessage = (event) => {
+      const msg = JSON.parse(event.data);
+
+      if (msg.type === "role") {
+        playerId = msg.player;
+        info.textContent = playerId
+          ? `🎮 Eres Jugador ${playerId} (${playerId === 1 ? "Izquierda" : "Derecha"})`
+          : "👀 Eres espectador";
+      }
+
+      if (msg.type === "state") {
+        gameState = msg.data;
+        drawGame();
+      }
+    };
+
+    function drawGame() {
+      if (!gameState) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Pelota
+      ctx.fillStyle = "white";
+      ctx.beginPath();
+      ctx.arc(gameState.ball.x, gameState.ball.y, gameState.ball.r, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Palas
+      ctx.fillStyle = "white";
+      ctx.fillRect(10, gameState.paddles.left.y, 10, 100);
+      ctx.fillRect(580, gameState.paddles.right.y, 10, 100);
+
+      // Marcador
+      ctx.font = "20px monospace";
+      ctx.fillText(gameState.score.left, 250, 30);
+      ctx.fillText(gameState.score.right, 330, 30);
+    }
+
+    // Controles
+    window.addEventListener("keydown", (e) => {
+      if (!playerId) return;
+      let dy = 0;
+      if (e.key === "ArrowUp" || e.key === "w") dy = -10;
+      if (e.key === "ArrowDown" || e.key === "s") dy = 10;
+      if (dy !== 0) {
+        ws.send(JSON.stringify({ type: "move", dy }));
+      }
+    });
+  </script>
+</body>
+</html>
